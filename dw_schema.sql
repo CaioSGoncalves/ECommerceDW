@@ -1,5 +1,5 @@
-CREATE DATABASE dw;
-USE dw;
+-- CREATE DATABASE dw;
+-- USE dw;
 
 DROP TABLE IF EXISTS fact_review;
 DROP TABLE IF EXISTS fact_order_item;
@@ -101,6 +101,11 @@ CREATE TABLE fact_order_item (
     FOREIGN KEY (seller_id) REFERENCES dim_seller(id),
     FOREIGN KEY (customer_id) REFERENCES dim_customer(id),
     FOREIGN KEY (order_payment_id) REFERENCES dim_order_payment(id),
+    FOREIGN KEY (purchase_timestamp_date_id) REFERENCES dim_date(id),
+    FOREIGN KEY (approved_at_date_id) REFERENCES dim_date(id),
+    FOREIGN KEY (delivered_carrier_date_id) REFERENCES dim_date(id),
+    FOREIGN KEY (delivered_customer_date_id) REFERENCES dim_date(id),
+    FOREIGN KEY (estimated_delivery_date_id) REFERENCES dim_date(id),
     PRIMARY KEY (id)
 );
 
