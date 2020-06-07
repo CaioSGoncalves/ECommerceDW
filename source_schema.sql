@@ -106,3 +106,5 @@ CREATE TABLE geolocation (
     geolocation_city VARCHAR(255) NOT NULL,
 	geolocation_state VARCHAR(255) NOT NULL
 );
+
+
