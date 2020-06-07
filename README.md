@@ -18,11 +18,14 @@ Dataset: https://www.kaggle.com/olistbr/brazilian-ecommerce
 - Executar queries analíticas com o objetivo de verificar o desempenho.
 - Aprender sobre modelagem dimensional e star-schema.
 
-**Resultados:**&nbsp;
+**Resultados:**
+
+
 Query Número de Itens de Pedido Por Dia:
 - Tempo de processamento no sourceDB -> 0.364 sec
 - Tempo de processamento no dw -> 0.179 sec
-&nbsp;
+
+
 Query Número de Itens de Pedido por Localidade:
 - Tempo de processamento no sourceDB -> 0.501 sec
 - Tempo de processamento no dw -> 0.271 sec
