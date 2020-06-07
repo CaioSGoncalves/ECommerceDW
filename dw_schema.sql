@@ -87,7 +87,7 @@ CREATE TABLE fact_order_item (
     seller_id INT(11) NOT NULL,
     customer_id INT(11) NOT NULL,
     original_id VARCHAR(32) NOT NULL,
-    order_payment_id INT(11) NOT NULL,
+    order_payment_id INT(11) NULL,
     
     price FLOAT NOT NULL,
 	status VARCHAR(255) NOT NULL,

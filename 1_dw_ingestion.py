@@ -17,10 +17,7 @@ def transform_str(value):
 
 def ingest_dim_local(source_engine, dw_engine):
     source_connection = source_engine.connect()
-    dw_connection = dw_engine.connect()
     table_name = "dim_local"
-
-    dw_connection.execute(f"DELETE FROM {table_name};")
 
     results = source_connection.execute("""
         (SELECT
@@ -48,10 +45,7 @@ def ingest_dim_local(source_engine, dw_engine):
 
 def ingest_dim_product(source_engine, dw_engine):
     source_connection = source_engine.connect()
-    dw_connection = dw_engine.connect()
     table_name = "dim_product"
-
-    dw_connection.execute(f"DELETE FROM {table_name};")
 
     results = source_connection.execute("""
         SELECT
@@ -69,10 +63,6 @@ def ingest_dim_product(source_engine, dw_engine):
 
 def ingest_dim_order_payment_and_dim_payment(source_engine, dw_engine):
     source_connection = source_engine.connect()
-    dw_connection = dw_engine.connect()
-
-    dw_connection.execute("DELETE FROM dim_payment;")
-    dw_connection.execute("DELETE FROM dim_order_payment;")
 
     results = source_connection.execute("""
         SELECT
@@ -87,6 +77,7 @@ def ingest_dim_order_payment_and_dim_payment(source_engine, dw_engine):
     data.columns = results.keys()
 
     order_payment = data[['order_id']].copy()
+    order_payment.drop_duplicates(subset=['order_id'], keep='first', inplace=True)
     order_payment.to_sql(name="dim_order_payment", con=dw_engine, if_exists='append', index=False)
     order_payment = pd.read_sql_table("dim_order_payment", con=dw_engine)
 
@@ -98,9 +89,7 @@ def ingest_dim_order_payment_and_dim_payment(source_engine, dw_engine):
 
 def ingest_dim_seller(source_engine, dw_engine):
     source_connection = source_engine.connect()
-    dw_connection = dw_engine.connect()
     table_name = "dim_seller"
-    dw_connection.execute(f"DELETE FROM {table_name};")
 
     results = source_connection.execute("""
         SELECT 
@@ -121,9 +110,7 @@ def ingest_dim_seller(source_engine, dw_engine):
 
 def ingest_dim_customer(source_engine, dw_engine):
     source_connection = source_engine.connect()
-    dw_connection = dw_engine.connect()
     table_name = "dim_customer"
-    dw_connection.execute(f"DELETE FROM {table_name};")
 
     results = source_connection.execute("""
     SELECT 
@@ -145,9 +132,7 @@ def ingest_dim_customer(source_engine, dw_engine):
 
 def ingest_dim_date(source_engine, dw_engine):
     source_connection = source_engine.connect()
-    dw_connection = dw_engine.connect()
     table_name = "dim_date"
-    dw_connection.execute(f"DELETE FROM {table_name};")
 
     results = source_connection.execute("""
     (SELECT 
@@ -196,19 +181,17 @@ def ingest_dims():
     source_engine = create_engine("mysql+pymysql://root:12345@localhost:3307/sourceDB", echo=False)
     dw_engine = create_engine("mysql+pymysql://root:12345@localhost:3307/dw", echo=False)
 
+    ingest_dim_date(source_engine, dw_engine)
     ingest_dim_local(source_engine, dw_engine)
     ingest_dim_product(source_engine, dw_engine)
     ingest_dim_order_payment_and_dim_payment(source_engine, dw_engine)
     ingest_dim_seller(source_engine, dw_engine)
     ingest_dim_customer(source_engine, dw_engine)
-    ingest_dim_date(source_engine, dw_engine)
 
 
 def ingest_fact_order_item(source_engine, dw_engine):
     source_connection = source_engine.connect()
-    dw_connection = dw_engine.connect()
     table_name = "fact_order_item"
-    dw_connection.execute(f"DELETE FROM {table_name};")
 
     results = source_connection.execute("""
      SELECT 
@@ -247,22 +230,22 @@ def ingest_fact_order_item(source_engine, dw_engine):
     data = pd.merge(data, dim_seller, left_on=['seller_original_id'], right_on=['original_id'])
     data.rename({'id': 'seller_id'}, axis=1, inplace=True)
 
-    data = pd.merge(data, dim_date, left_on=['purchase_timestamp_str'], right_on=['str'])
+    data = pd.merge(data, dim_date, how='left', left_on=['purchase_timestamp_str'], right_on=['str'])
     data.rename({'id': 'purchase_timestamp_date_id'}, axis=1, inplace=True)
 
-    data = pd.merge(data, dim_date, left_on=['approved_at_str'], right_on=['str'])
+    data = pd.merge(data, dim_date, how='left', left_on=['approved_at_str'], right_on=['str']) #
     data.rename({'id': 'approved_at_date_id'}, axis=1, inplace=True)
 
-    data = pd.merge(data, dim_date, left_on=['delivered_carrier_date_str'], right_on=['str'])
+    data = pd.merge(data, dim_date, how='left', left_on=['delivered_carrier_date_str'], right_on=['str']) #
     data.rename({'id': 'delivered_carrier_date_id'}, axis=1, inplace=True)
 
-    data = pd.merge(data, dim_date, left_on=['delivered_customer_date_str'], right_on=['str'])
+    data = pd.merge(data, dim_date, how='left', left_on=['delivered_customer_date_str'], right_on=['str']) #
     data.rename({'id': 'delivered_customer_date_id'}, axis=1, inplace=True)
 
-    data = pd.merge(data, dim_date, left_on=['estimated_delivery_date_str'], right_on=['str'])
+    data = pd.merge(data, dim_date, how='left', left_on=['estimated_delivery_date_str'], right_on=['str'])
     data.rename({'id': 'estimated_delivery_date_id'}, axis=1, inplace=True)
 
-    data = pd.merge(data, dim_order_payment, on='order_id')
+    data = pd.merge(data, dim_order_payment, how='left', on='order_id') #
     data.rename({'id': 'order_payment_id'}, axis=1, inplace=True)
 
     data.rename({'original_id_x': 'original_id'}, axis=1, inplace=True)
@@ -280,6 +263,20 @@ def ingest_facts():
     ingest_fact_order_item(source_engine, dw_engine)
 
 
+def delete_all():
+    dw_engine = create_engine("mysql+pymysql://root:12345@localhost:3307/dw", echo=False)
+    dw_connection = dw_engine.connect()
+    dw_connection.execute("DELETE FROM fact_order_item;")
+    dw_connection.execute("DELETE FROM dim_customer;")
+    dw_connection.execute("DELETE FROM dim_seller;")
+    dw_connection.execute("DELETE FROM dim_payment;")
+    dw_connection.execute("DELETE FROM dim_order_payment;")
+    dw_connection.execute("DELETE FROM dim_product;")
+    dw_connection.execute("DELETE FROM dim_local;")
+    dw_connection.execute("DELETE FROM dim_date;")
+
+
 if __name__ == "__main__":
+    delete_all()
     ingest_dims()
     ingest_facts()
