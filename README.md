@@ -12,12 +12,23 @@ Dataset: https://www.kaggle.com/olistbr/brazilian-ecommerce
 ![olist_model](model/olist_model.png)
 
 
+**Objetivo:**
+- Ingestão dos dados .csv no banco MySQL (db: sourceDB).
+- Ingestão dos dados do sourceDB num Data Warehouse (simulado dentro do MySQL no db: dw).
+- Executar queries analíticas com o objetivo de verificar o desempenho.
+- Aprender sobre modelagem dimensional e star-schema.
 
+**Resultados:**
+Query Número de Itens de Pedido Por Dia:
+- Tempo de processamento no sourceDB -> 0.364 sec
+- Tempo de processamento no dw -> 0.179 sec
+
+Query Número de Itens de Pedido por Localidade:
+- Tempo de processamento no sourceDB -> 0.501 sec
+- Tempo de processamento no dw -> 0.271 sec
 
 **Diagrama sourceDB:**
 ![sourceDB](model/sourceDB.png)
-
-
 
 
 **Diagrama dw:**
